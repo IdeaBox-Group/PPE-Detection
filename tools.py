@@ -35,31 +35,52 @@ def annotate_image(image, model):
     return image
 
 def read_image(image_path,
-               model=None):
+               model=None,
+               save_to=None):
     image = cv2.imread(image_path)
     if model is not None:
         image = annotate_image(image, model)
     
     cv2.imshow(f"{image_path}", image)
+    
+    if save_to is not None:
+        cv2.imwrite(save_to, image)
+    
     cv2.waitKey(0)
     cv2.destroyAllWindows()
 
 def read_video(video_path,
-               model=None):
+               model=None,
+               save_to=None):
     cap = cv2.VideoCapture(video_path)
     totalFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
     
     # if myFrameNumber >= 0 & myFrameNumber <= totalFrames:
     #     # set frame position
     #     cap.set(cv2.CAP_PROP_POS_FRAMES,myFrameNumber)
+    if save_to is not None:
+        width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH) 
+        height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        
+        out_video= cv2.VideoWriter(save_to,  
+                                    cv2.VideoWriter_fourcc(*'MP4V'), 
+                                    20, 
+                                    (int(cap.get(3)) , int(cap.get(4)))) 
     
     while True : 
         ret, frame = cap.read()     
         if model is not None : 
             frame = annotate_image(frame, model)
         cv2.imshow(f"{video_path}", frame)
+        
+        if save_to is not None:
+            out_video.write(frame)
+            
         if cv2.waitKey(20) & 0xFF == ord('q'):
             break
     
+    if save_to is not None:
+        out_video.release()
+        
     cv2.destroyAllWindows()
     
