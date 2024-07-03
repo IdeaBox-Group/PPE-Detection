@@ -17,15 +17,23 @@ class Camera:
         annotator = Annotator(image,
                               font_size=1,
                               )
-        results = self.model.predict(image)
+        results = self.model.predict(image, verbose=False)
+        class_counts = {item : 0 for item in self.model.names.values()}
+
         for r in results:
             if r.boxes:
                 for box in r.boxes:
+                    # print(box)
                     bbox = box.xyxy[0]
                     class_names = self.model.names[int(box.cls)]
+                    class_counts[class_names] += 1
                     annotator.box_label(bbox, class_names, color=(
                         0, 0, 255), txt_color=(255, 255, 255))
-
+        
+        print(class_counts)
+        print('AMAN!' if class_counts['Helm'] == class_counts['Rompi'] else 'TIDAK AMAN' )
+        print("-------------------------------------------------------------------------")
+        
         image = annotator.result()
         return image
 
