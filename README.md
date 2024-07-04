@@ -1,19 +1,21 @@
 # PPE-Detection
-This is the documentation of our PPE Detection Projects. The idea is to detect workers that wear PPE using CCTV to ensure the safety of the work
+This is the documentation of PPE Detection Project created by IdeaBox. The idea is to detect workers that wear PPE using CCTV to ensure the safety of the worksite.
 
 ## How to Use
-1. Clone this repository
+1. Download the requirements
+   This PPE application should be delivered in a .zip file. Extract the zip file into whereever you wish to install it. Make sure that the location is widely accessible.
    
-   ```
-   git clone https://github.com/IdeaBox-Group/PPE-Detection.git
-   ```
-2. Set your environment
+3. Set up your environment
+   Make sure python is installed on your computer, then run this line on the terminal.
+   
    ```
    python -m venv env
    env\Scripts\activate
    pip install -r requirements.txt
    ```
-3. Run the code
+5. Run the code
+   Navigate to the location where you extracted the zip file.
+   
    ```
    python main.py
    ``` 
@@ -25,3 +27,4 @@ Test Video : [Youtube](https://www.youtube.com/watch?v=s1n6nBhVzdo)
 Test Image : [WikiMedia](https://upload.wikimedia.org/wikipedia/commons/thumb/a/a5/69_Fisk_IRT_work_vests_jeh.jpg/800px-69_Fisk_IRT_work_vests_jeh.jpg)
 
 ## Collaborators
+Ideabox Team
