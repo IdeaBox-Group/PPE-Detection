@@ -4,83 +4,91 @@ import cv2
 from ultralytics import YOLO
 from ultralytics.utils.plotting import Annotator
 
-# def annotate_image_manual(image, results):
-#     print(results)
-#     for result in results:
-#         if result.boxes:
-#             for i in range(len(result.boxes)):
-#                 box = result.boxes[i]
-#                 index = int(box.cls.item())
-#                 tensor = box.xyxy[0]
-#                 x1 = int(tensor[0].to('cpu').item())
-#                 y1 = int(tensor[1].to('cpu').item())
-#                 x2 = int(tensor[2].to('cpu').item())
-#                 y2 = int(tensor[3].to('cpu').item())
-#                 cv2.rectangle(image,(x1,y1),(x2,y2),COLOR[index],1)
-#     return image
 
-def annotate_image(image, model):
-    annotator = Annotator(image,
-                          font_size=1,
-                          )
-    results = model.predict(image)
-    for r in results:
-        if r.boxes:
-            for box in r.boxes:
-                bbox = box.xyxy[0]
-                class_names = model.names[int(box.cls)]
-                annotator.box_label(bbox, class_names, color=(0, 0, 255), txt_color=(255, 255, 255))
-    
-    image = annotator.result() 
-    return image
+class Camera:
+    def __init__(self,
+                 video=0,
+                 model=None):
+        self.video = video
+        self.model = model
+        self.cap = cv2.VideoCapture(video)
 
-def read_image(image_path,
-               model=None,
-               save_to=None):
-    image = cv2.imread(image_path)
-    if model is not None:
-        image = annotate_image(image, model)
-    
-    cv2.imshow(f"{image_path}", image)
-    
-    if save_to is not None:
-        cv2.imwrite(save_to, image)
-    
-    cv2.waitKey(0)
-    cv2.destroyAllWindows()
+    def annotate_image(self, image):
+        annotator = Annotator(image,
+                              font_size=1,
+                              )
+        results = self.model.predict(image, verbose=False)
+        class_counts = {item : 0 for item in self.model.names.values()}
 
-def read_video(video_path,
-               model=None,
-               save_to=None):
-    cap = cv2.VideoCapture(video_path)
-    totalFrames = cap.get(cv2.CAP_PROP_FRAME_COUNT)
-    
-    # if myFrameNumber >= 0 & myFrameNumber <= totalFrames:
-    #     # set frame position
-    #     cap.set(cv2.CAP_PROP_POS_FRAMES,myFrameNumber)
-    if save_to is not None:
-        width  = cap.get(cv2.CAP_PROP_FRAME_WIDTH) 
-        height = cap.get(cv2.CAP_PROP_FRAME_HEIGHT)
+        for r in results:
+            if r.boxes:
+                for box in r.boxes:
+                    # print(box)
+                    bbox = box.xyxy[0]
+                    class_names = self.model.names[int(box.cls)]
+                    class_counts[class_names] += 1
+                    annotator.box_label(bbox, class_names, color=(
+                        0, 0, 255), txt_color=(255, 255, 255))
         
-        out_video= cv2.VideoWriter(save_to,  
-                                    cv2.VideoWriter_fourcc(*'MP4V'), 
-                                    20, 
-                                    (int(cap.get(3)) , int(cap.get(4)))) 
-    
-    while True : 
-        ret, frame = cap.read()     
-        if model is not None : 
-            frame = annotate_image(frame, model)
-        cv2.imshow(f"{video_path}", frame)
+        print(class_counts)
+        print('AMAN!' if class_counts['Helm'] == class_counts['Rompi'] else 'TIDAK AMAN' )
+        print("-------------------------------------------------------------------------")
+        
+        image = annotator.result()
+        return image
+
+    def read_image(self,
+                   image_path,
+                   save_to=None,
+                   show=True):
+        image = cv2.imread(image_path)
+        if self.model is not None:
+            image = self.annotate_image(image)
+        
+        if not show:
+            return image
+        
+        cv2.imshow(f"{image_path}", image)
         
         if save_to is not None:
-            out_video.write(frame)
-            
-        if cv2.waitKey(20) & 0xFF == ord('q'):
-            break
-    
-    if save_to is not None:
-        out_video.release()
+            cv2.imwrite(self.save_to, image)
+
+        cv2.waitKey(0)
+        cv2.destroyAllWindows()
+
+    def read_video(self,
+                   save_to=None,
+                   show=True):
         
-    cv2.destroyAllWindows()
-    
+        # totalFrames = self.cap.get(cv2.CAP_PROP_FRAME_COUNT)
+
+        # if save_to is not None:
+        #     frame_width = int(self.cap.get(cv2.CAP_PROP_FRAME_WIDTH))
+        #     frame_height = int(self.cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
+        #     out_video = cv2.VideoWriter(save_to,
+        #                                 cv2.VideoWriter_fourcc(*'mp4v'),
+        #                                 20,
+        #                                 (frame_width, frame_height))
+        if not show: 
+            _, frame = self.cap.read()     
+            if self.model is not None : 
+                frame = self.annotate_image(frame) 
+            return frame 
+        
+        while True : 
+            _, frame = self.cap.read()     
+            if self.model is not None : 
+                frame = self.annotate_image(frame)   
+            
+            cv2.imshow(f"{self.video}", frame)
+            
+            # if save_to is not None:
+            #     out_video.write(frame)
+                
+            if cv2.waitKey(20) & 0xFF == ord('q'):
+                break
+        
+        # if save_to is not None:
+        #     out_video.release()
+            
+        cv2.destroyAllWindows()
